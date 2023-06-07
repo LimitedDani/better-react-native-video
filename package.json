@@ -4,12 +4,13 @@
     "description": "A <Video /> element for react-native",
     "main": "Video.js",
     "source": "Video.js",
+    "types": "Video.d.ts",
     "license": "MIT",
     "author": "Community Contributors",
-    "homepage": "https://github.com/react-native-video/react-native-video#readme",
+    "homepage": "https://github.com/LimitedDani/better-react-native-video#readme",
     "repository": {
         "type": "git",
-        "url": "git@github.com:react-native-video/react-native-video.git"
+        "url": "git@github.com:LimitedDani/better-react-native-video.git"
     },
     "devDependencies": {
         "@react-native-community/eslint-config": "^0.0.5",
@@ -41,6 +42,7 @@
         "TextTrackType.js",
         "VideoResizeMode.js",
         "react-native-video.podspec",
-        "docs"
+        "docs",
+        "Video.d.ts"
     ]
 }
