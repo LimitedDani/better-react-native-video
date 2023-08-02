@@ -77,6 +77,10 @@ export default class Video extends Component {
     this.setNativeProps({ fullscreen: false });
   };
 
+  stop = () => {
+    NativeModules.VideoManager.stop();
+  }
+
   save = async (options) => {
     return await NativeModules.VideoManager.save(options, findNodeHandle(this._root));
   }
@@ -555,6 +559,7 @@ Video.propTypes = {
   onExternalPlaybackChange: PropTypes.func,
   adTagUrl: PropTypes.string,
   onReceiveAdEvent: PropTypes.func,
+  stop: PropTypes.bool,
 
   /* Required by react-native */
   ...ViewPropTypes,
