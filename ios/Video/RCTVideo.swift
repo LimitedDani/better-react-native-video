@@ -35,6 +35,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _controls:Bool = false
 
     /* Keep track of any modifiers, need to be applied after each play */
+    private var _audioOutput: String = "speaker"
     private var _volume:Float = 1.0
     private var _rate:Float = 1.0
     private var _maxBitRate:Float?
@@ -82,8 +83,8 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private let _videoCache:RCTVideoCachingHandler = RCTVideoCachingHandler()
 #endif
 
-#if TARGET_OS_IOS
-    private let _pip:RCTPictureInPicture = RCTPictureInPicture(self.onPictureInPictureStatusChanged, self.onRestoreUserInterfaceForPictureInPictureStop)
+#if os(iOS)
+    private var _pip:RCTPictureInPicture? = nil
 #endif
 
     // Events
@@ -111,6 +112,14 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     @objc var onGetLicense: RCTDirectEventBlock?
     @objc var onReceiveAdEvent: RCTDirectEventBlock?
     @objc var onTextTracks: RCTDirectEventBlock?
+    
+    @objc func _onPictureInPictureStatusChanged() {
+        onPictureInPictureStatusChanged?([ "isActive": NSNumber(value: true)])
+    }
+
+    @objc func _onRestoreUserInterfaceForPictureInPictureStop() {
+        onPictureInPictureStatusChanged?([ "isActive": NSNumber(value: false)])
+    }
 
     init(eventDispatcher:RCTEventDispatcher!) {
         super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
@@ -119,6 +128,10 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 #endif
 
         _eventDispatcher = eventDispatcher
+
+#if os(iOS)
+        _pip = RCTPictureInPicture(self._onPictureInPictureStatusChanged, self._onRestoreUserInterfaceForPictureInPictureStop)
+#endif
 
         NotificationCenter.default.addObserver(
             self,
@@ -176,7 +189,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     }
 
     @objc func applicationDidEnterBackground(notification:NSNotification!) {
-        if _playInBackground {
+        if !_playInBackground {
             // Needed to play sound in background. See https://developer.apple.com/library/ios/qa/qa1668/_index.html
             _playerLayer?.player = nil
             _playerViewController?.player = nil
@@ -450,15 +463,21 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     @objc
     func setPictureInPicture(_ pictureInPicture:Bool) {
-#if TARGET_OS_IOS
-        _pip.setPictureInPicture(pictureInPicture)
+#if os(iOS)
+        let audioSession = AVAudioSession.sharedInstance()
+        do {
+            try audioSession.setCategory(.playback)
+            try audioSession.setActive(true, options: [])
+        } catch {
+        }
+        _pip?.setPictureInPicture(pictureInPicture)
 #endif
     }
 
     @objc
     func setRestoreUserInterfaceForPIPStopCompletionHandler(_ restore:Bool) {
-#if TARGET_OS_IOS
-        _pip.setRestoreUserInterfaceForPIPStopCompletionHandler(restore)
+#if os(iOS)
+        _pip?.setRestoreUserInterfaceForPIPStopCompletionHandler(restore)
 #endif
     }
 
@@ -558,6 +577,20 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     }
 
     @objc
+    func setAudioOutput(_ audioOutput:String) {
+        _audioOutput = audioOutput
+        do {
+            if audioOutput == "speaker" {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.speaker)
+            } else if audioOutput == "earpiece" {
+                try AVAudioSession.sharedInstance().overrideOutputAudioPort(AVAudioSession.PortOverride.none)
+            }
+        } catch {
+            print("Error occurred: \(error.localizedDescription)")
+        }
+    }
+
+    @objc
     func setVolume(_ volume:Float) {
         _volume = volume
         applyModifiers()
@@ -588,7 +621,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             // Fallback on earlier versions
         }
     }
-    
+
     func setPlaybackRange(_ item:AVPlayerItem!, withVideoStart videoStart:Int64?, withVideoEnd videoEnd:Int64?) {
         if (videoStart != nil) {
             let start = CMTimeMake(value: videoStart!, timescale: 1000)
@@ -617,7 +650,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             _player?.isMuted = false
         }
 
-        if #available(iOS 12.0, *) {
+        if #available(iOS 12.0, tvOS 12.0, *) {
             _player?.preventsDisplaySleepDuringVideoPlayback = _preventsDisplaySleepDuringVideoPlayback
         } else {
             // Fallback on earlier versions
@@ -627,6 +660,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             setMaxBitRate(_maxBitRate)
         }
 
+        setAudioOutput(_audioOutput)
         setSelectedAudioTrack(_selectedAudioTrackCriteria)
         setSelectedTextTrack(_selectedTextTrackCriteria)
         setResizeMode(_resizeMode)
@@ -685,7 +719,8 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     func setFullscreen(_ fullscreen:Bool) {
         if fullscreen && !_fullscreenPlayerPresented && _player != nil {
             // Ensure player view controller is not null
-            if _playerViewController == nil && _controls {
+            // Controls will be displayed even if it is disabled in configuration
+            if _playerViewController == nil {
                 self.usePlayerViewController()
             }
 
@@ -715,7 +750,8 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
                     viewController.present(playerViewController, animated:true, completion:{ [weak self] in
                         guard let self = self else {return}
-                        self._playerViewController?.showsPlaybackControls = self._controls
+                        // In fullscreen we must display controls
+                        self._playerViewController?.showsPlaybackControls = true
                         self._fullscreenPlayerPresented = fullscreen
                         self._playerViewController?.autorotate = self._fullscreenAutorotate
 
@@ -777,6 +813,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
         viewController.view.frame = self.bounds
         viewController.player = player
+        viewController.allowsPictureInPicturePlayback = true
         return viewController
     }
 
@@ -795,8 +832,8 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
                 self.layer.addSublayer(_playerLayer)
             }
             self.layer.needsDisplayOnBoundsChange = true
-#if TARGET_OS_IOS
-            _pip.setupPipController(_playerLayer)
+#if os(iOS)
+            _pip?.setupPipController(_playerLayer)
 #endif
         }
     }
@@ -994,6 +1031,14 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     func setLicenseResultError(_ error:String!) {
         _resouceLoaderDelegate?.setLicenseResultError(error)
+    }
+
+    func dismissFullscreenPlayer(_ error:String!) {
+        setFullscreen(false)
+    }
+
+    func presentFullscreenPlayer(_ error:String!) {
+        setFullscreen(true)
     }
 
     // MARK: - RCTPlayerObserverHandler
