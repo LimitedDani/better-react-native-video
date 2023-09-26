@@ -347,7 +347,11 @@ export default class Video extends Component {
         patchVer: source.patchVer || 0,
         requestHeaders: source.headers ? this.stringsOnlyObject(source.headers) : {},
         startTime: source.startTime || 0,
-        endTime: source.endTime
+        endTime: source.endTime,
+        // Custom Metadata
+        title: source.title,
+        subtitle: source.subtitle,
+        description: source.description,
       },
       onVideoLoadStart: this._onLoadStart,
       onVideoPlaybackStateChanged: this._onPlaybackStateChanged,
@@ -494,6 +498,13 @@ Video.propTypes = {
         TextTrackType.VTT,
       ]),
       language: PropTypes.string.isRequired,
+    })
+  ),
+  chapters: PropTypes.arrayOf(
+    PropTypes.shape({
+      title: PropTypes.string,
+      startTime: PropTypes.number.isRequired,
+      endTime: PropTypes.number.isRequired,
     })
   ),
   paused: PropTypes.bool,

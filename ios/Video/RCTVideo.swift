@@ -14,6 +14,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _source:VideoSource?
     private var _playerBufferEmpty:Bool = true
     private var _playerLayer:AVPlayerLayer?
+    private var _chapters:[Chapter]?
 
     private var _playerViewController:RCTVideoPlayerViewController?
     private var _videoURL:NSURL?
@@ -65,6 +66,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     private var _filterName:String!
     private var _filterEnabled:Bool = false
     private var _presentingViewController:UIViewController?
+    private var _pictureInPictureEnabled = false
 
     /* IMA Ads */
     private var _adTagUrl:String?
@@ -121,10 +123,14 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         onPictureInPictureStatusChanged?([ "isActive": NSNumber(value: false)])
     }
 
+    func isPipEnabled () -> Bool {
+        return _pictureInPictureEnabled
+    }
+
     init(eventDispatcher:RCTEventDispatcher!) {
         super.init(frame: CGRect(x: 0, y: 0, width: 100, height: 100))
 #if USE_GOOGLE_IMA
-        _imaAdsManager = RCTIMAAdsManager(video: self)
+        _imaAdsManager = RCTIMAAdsManager(video: self, pipEnabled: isPipEnabled)
 #endif
 
         _eventDispatcher = eventDispatcher
@@ -169,7 +175,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
 #if USE_GOOGLE_IMA
-        _imaAdsManager = RCTIMAAdsManager(video: self)
+        _imaAdsManager = RCTIMAAdsManager(video: self, pipEnabled: isPipEnabled)
 #endif
     }
 
@@ -198,7 +204,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     @objc func applicationWillEnterForeground(notification:NSNotification!) {
         self.applyModifiers()
-        if _playInBackground {
+        if !_playInBackground {
             _playerLayer?.player = _player
             _playerViewController?.player = _player
         }
@@ -409,7 +415,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     func playerItemPrepareText(asset:AVAsset!, assetOptions:NSDictionary?) -> AVPlayerItem {
         if (_textTracks == nil) || _textTracks?.count==0 {
-            return AVPlayerItem(asset: asset)
+            return self.playerItemPropegateMetadata(AVPlayerItem(asset: asset))
         }
 
         // AVPlayer can't airplay AVMutableCompositions
@@ -424,7 +430,35 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             setTextTracks(validTextTracks)
         }
 
-        return AVPlayerItem(asset: mixComposition)
+        return self.playerItemPropegateMetadata(AVPlayerItem(asset: mixComposition))
+    }
+    
+    func playerItemPropegateMetadata(_ playerItem: AVPlayerItem!) -> AVPlayerItem {
+        var mapping: [AVMetadataIdentifier: Any] = [:]
+        
+        if let title = _source?.title {
+            mapping[.commonIdentifierTitle] = title
+        }
+        
+        if let subtitle = _source?.subtitle {
+            mapping[.iTunesMetadataTrackSubTitle] = subtitle
+        }
+        
+        if let description = _source?.description {
+            mapping[.commonIdentifierDescription] = description
+        }
+        
+        if #available(iOS 12.2, *), !mapping.isEmpty {
+            playerItem.externalMetadata = RCTVideoUtils.createMetadataItems(for: mapping)
+        }
+        
+        #if os(tvOS)
+        if let chapters = _chapters {
+            playerItem.navigationMarkerGroups = RCTVideoTVUtils.makeNavigationMarkerGroups(chapters)
+        }
+        #endif
+        
+        return playerItem
     }
 
     // MARK: - Prop setters
@@ -469,6 +503,11 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             try audioSession.setCategory(.playback)
             try audioSession.setActive(true, options: [])
         } catch {
+        }
+        if (pictureInPicture) {
+            _pictureInPictureEnabled = true
+        } else {
+            _pictureInPictureEnabled = false
         }
         _pip?.setPictureInPicture(pictureInPicture)
 #endif
@@ -713,6 +752,15 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
         // in case textTracks was set after selectedTextTrack
         if (_selectedTextTrackCriteria != nil) {setSelectedTextTrack(_selectedTextTrackCriteria)}
+    }
+    
+    @objc
+    func setChapters(_ chapters:[NSDictionary]?) {
+        setChapters(chapters?.map { Chapter($0) })
+    }
+
+    func setChapters(_ chapters:[Chapter]?) {
+        _chapters = chapters
     }
 
     @objc

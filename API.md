@@ -352,7 +352,7 @@ var styles = StyleSheet.create({
 | [onBandwidthUpdate](#onbandwidthupdate)                                                         | Android                   |
 | [onBuffer](#onbuffer)                                                                           | Android, iOS              |
 | [onEnd](#onend)                                                                                 | All                       |
-| [onError](#onerror)                                                                             | Android, iOS              |
+| [onError](#onerror)                                                                             | Android, iOS, Windows UWP |
 | [onExternalPlaybackChange](#onexternalplaybackchange)                                           | iOS                       |
 | [onFullscreenPlayerWillPresent](#onfullscreenplayerwillpresent)                                 | Android, iOS              |
 | [onFullscreenPlayerDidPresent](#onfullscreenplayerdidpresent)                                   | Android, iOS              |
@@ -464,6 +464,19 @@ bufferConfig={{
 ```
 
 Platforms: Android
+
+#### chapters
+To provide a custom chapter source for tvOS. This prop takes an array of objects with the properties listed below.
+
+| Property  | Type    | Description                                                                                                                                               |
+|-----------|---------|-----------------------------------------------------------------------------------------------------------------------------------------------------------|
+| title     | string  | The title of the chapter to create                                                                                                                        |
+| startTime | number  | The start time of the chapter in seconds                                                                                                                  |
+| endTime   | number  | The end time of the chapter in seconds                                                                                                                    |
+| uri       | string? | Optional: Provide an http orl or the some base64 string to override the image of the chapter. For some media files the images are generated automatically |
+
+
+Platforms: tvOS
 
 #### currentPlaybackTime
 When playing an HLS live stream with a `EXT-X-PROGRAM-DATE-TIME` tag configured, then this property will contain the epoch value in msec.
@@ -653,6 +666,8 @@ Platforms: all
 Determine whether the media should played as picture in picture.
 * **false (default)** - Don't not play as picture in picture
 * **true** - Play the media as picture in picture
+
+NOTE: Video ads cannot start when you are using the PIP on iOS (more info available at [Google IMA SDK Docs](https://developers.google.com/interactive-media-ads/docs/sdks/ios/client-side/picture_in_picture?hl=en#starting_ads)). If you are using custom controls, you must disable your PIP button when you receive the ```STARTED``` event from ```onReceiveAdEvent``` and show it again when you receive the ```ALL_ADS_COMPLETED``` event.
 
 Platforms: iOS
 
@@ -963,6 +978,24 @@ source={{ uri: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8'
 ```
 
 Platforms: iOS, Android
+
+##### Overriding the metadata of a source
+
+Provide an optional `title`, `subtitle`  and/or `description` properties for the video. 
+Useful when to adapt the tvOS playback experience.
+
+Example:
+
+```
+source={{ 
+    uri: 'https://bitdash-a.akamaihd.net/content/sintel/hls/playlist.m3u8', 
+    title: 'Custom Title', 
+    subtitle: 'Custom Subtitle', 
+    description: 'Custom Description'
+  }}
+```
+
+Platforms: tvOS
 
 #### subtitleStyle
 
