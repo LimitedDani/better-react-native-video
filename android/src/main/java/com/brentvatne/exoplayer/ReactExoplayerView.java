@@ -1597,6 +1597,7 @@ class ReactExoplayerView extends FrameLayout implements
 
     private void reloadSource() {
         playerNeedsSource = true;
+        releasePlayer();
         initializePlayer();
     }
 
