@@ -379,7 +379,7 @@ public class VideoEventEmitter {
         receiveEvent(EVENT_PLAYBACK_RATE_CHANGE, map);
     }
 
-    void timedManifest(String key, String value) {
+    public void timedManifest(String key, String value) {
         WritableMap map = Arguments.createMap();
         map.putString("key", key);
         map.putString("value", value);
@@ -389,7 +389,7 @@ public class VideoEventEmitter {
         receiveEvent(EVENT_TIMED_METADATA, event);
     }
 
-    void timedManifest(String s) {
+    public void timedManifest(String s) {
         WritableMap map = Arguments.createMap();
         map.putString("key", s);
 
