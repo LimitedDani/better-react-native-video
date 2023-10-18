@@ -53,6 +53,7 @@
         "!android/buildOutput_*",
         "!android/local.properties",
         "!ios/build",
-        "!**/*.tsbuildinfo"
+        "!**/*.tsbuildinfo",
+        "Video.d.ts"
     ]
 }
