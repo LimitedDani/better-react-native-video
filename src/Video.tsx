@@ -510,6 +510,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
             onRestoreUserInterfaceForPictureInPictureStop
           }
           onReceiveAdEvent={_onReceiveAdEvent}
+          stop={stop}
         />
         {showPoster ? (
           <Image style={posterStyle} source={{uri: poster}} />

@@ -262,6 +262,7 @@ export interface VideoNativeProps extends ViewProps {
   restoreUserInterfaceForPIPStopCompletionHandler?: boolean;
   localSourceEncryptionKeyScheme?: string;
   debug?: DebugConfig;
+  stop?: boolean;
 
   backBufferDurationMs?: number; // Android
   bufferConfig?: BufferConfig; // Android
