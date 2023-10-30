@@ -8,34 +8,38 @@ import React, {
   type ComponentRef,
 } from 'react';
 import {View, StyleSheet, Image, Platform} from 'react-native';
-import NativeVideoComponent from './VideoNativeComponent';
-import type {
-  OnAudioFocusChangedData,
-  OnAudioTracksData,
-  OnPlaybackStateChangedData,
-  OnTextTracksData,
-  OnTimedMetadataData,
-  OnVideoErrorData,
-  OnVideoTracksData,
+import NativeVideoComponent, {
+  type VideoComponentType,
 } from './VideoNativeComponent';
 
 import type {StyleProp, ImageStyle, NativeSyntheticEvent} from 'react-native';
-import {
-  type VideoComponentType,
-  type OnLoadData,
-  type OnGetLicenseData,
-  type OnLoadStartData,
-  type OnProgressData,
-  type OnSeekData,
-  type OnPictureInPictureStatusChangedData,
-  type OnBandwidthUpdateData,
-  type OnBufferData,
-  type OnExternalPlaybackChangeData,
-  type OnReceiveAdEventData,
-  VideoManager,
-} from './VideoNativeComponent';
 import type {ReactVideoProps} from './types/video';
 import {getReactTag, resolveAssetSourceForVideo} from './utils';
+import {VideoManager} from './VideoNativeComponent';
+import type {
+  OnAudioFocusChangedData,
+  OnAudioTracksData,
+  OnBandwidthUpdateData,
+  OnBufferData,
+  OnExternalPlaybackChangeData,
+  OnGetLicenseData,
+  OnLoadData,
+  OnLoadStartData,
+  OnPictureInPictureStatusChangedData,
+  OnPlaybackStateChangedData,
+  OnProgressData,
+  OnReceiveAdEventData,
+  OnSeekData,
+  OnTextTracksData,
+  OnTimedMetadataData,
+  OnVideoAspectRatioData,
+  OnVideoErrorData,
+  OnVideoTracksData,
+} from './types/events';
+
+export type VideoSaveData = {
+  uri: string;
+};
 
 export interface VideoRef {
   seek: (time: number, tolerance?: number) => void;
@@ -46,6 +50,7 @@ export interface VideoRef {
   restoreUserInterfaceForPictureInPictureStopCompleted: (
     restore: boolean,
   ) => void;
+  save: () => Promise<VideoSaveData>;
 }
 
 const Video = forwardRef<VideoRef, ReactVideoProps>(
@@ -89,6 +94,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       onTextTracks,
       onVideoTracks,
       stop,
+      onAspectRatio,
       ...rest
     },
     ref,
@@ -123,7 +129,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
         uri = `file://${uri}`;
       }
       if (!uri) {
-        console.warn('Trying to load empty source');
+        console.log('Trying to load empty source');
       }
       const isNetwork = !!(uri && uri.match(/^https?:/));
       const isAsset = !!(
@@ -215,7 +221,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
           nativeRef.current?.setNativeProps({
             seek: {
               time,
-              tolerance,
+              tolerance: tolerance || 0,
             },
           });
         },
@@ -235,20 +241,20 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       setIsFullscreen(false);
     }, [setIsFullscreen]);
 
-    const save = useCallback(async () => {
-      await VideoManager.save(getReactTag(nativeRef));
+    const save = useCallback(() => {
+      return VideoManager.save(getReactTag(nativeRef));
     }, []);
 
     const stopVideo = useCallback(async () => {
       await VideoManager.stop();
     }, []);
 
-    const pause = useCallback(async () => {
-      await VideoManager.setPlayerPauseState(true, getReactTag(nativeRef));
+    const pause = useCallback(() => {
+      return VideoManager.setPlayerPauseState(true, getReactTag(nativeRef));
     }, []);
 
-    const resume = useCallback(async () => {
-      await VideoManager.setPlayerPauseState(false, getReactTag(nativeRef));
+    const resume = useCallback(() => {
+      return VideoManager.setPlayerPauseState(false, getReactTag(nativeRef));
     }, []);
 
     const restoreUserInterfaceForPictureInPictureStopCompleted = useCallback(
@@ -296,7 +302,6 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       [onSeek],
     );
 
-    // android only
     const onVideoPlaybackStateChanged = useCallback(
       (e: NativeSyntheticEvent<OnPlaybackStateChangedData>) => {
         onPlaybackStateChanged?.(e.nativeEvent);
@@ -389,6 +394,13 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
         onReceiveAdEvent?.(e.nativeEvent);
       },
       [onReceiveAdEvent],
+    );
+
+    const _onVideoAspectRatio = useCallback(
+      (e: NativeSyntheticEvent<OnVideoAspectRatioData>) => {
+        onAspectRatio?.(e.nativeEvent);
+      },
+      [onAspectRatio],
     );
 
     const onGetLicense = useCallback(
@@ -490,7 +502,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
           onVideoEnd={onEnd}
           onVideoBuffer={onVideoBuffer}
           onVideoPlaybackStateChanged={onVideoPlaybackStateChanged}
-          onBandwidthUpdate={_onBandwidthUpdate}
+          onVideoBandwidthUpdate={_onBandwidthUpdate}
           onTimedMetadata={_onTimedMetadata}
           onAudioTracks={_onAudioTracks}
           onTextTracks={_onTextTracks}
@@ -509,6 +521,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
           onRestoreUserInterfaceForPictureInPictureStop={
             onRestoreUserInterfaceForPictureInPictureStop
           }
+          onVideoAspectRatio={_onVideoAspectRatio}
           onReceiveAdEvent={_onReceiveAdEvent}
           stop={stop}
         />

@@ -108,6 +108,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
     @objc var onPlaybackStalled: RCTDirectEventBlock?
     @objc var onPlaybackResume: RCTDirectEventBlock?
     @objc var onPlaybackRateChange: RCTDirectEventBlock?
+    @objc var onVideoPlaybackStateChanged: RCTDirectEventBlock?
     @objc var onVideoExternalPlaybackChange: RCTDirectEventBlock?
     @objc var onPictureInPictureStatusChanged: RCTDirectEventBlock?
     @objc var onRestoreUserInterfaceForPictureInPictureStop: RCTDirectEventBlock?
@@ -1267,8 +1268,17 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
 
     func handlePlaybackRateChange(player: AVPlayer, change: NSKeyValueObservedChange<Float>) {
         guard let _player = _player else { return }
+        
+        if(player.rate == change.oldValue && change.oldValue != nil) {
+            return
+        }
+        
         onPlaybackRateChange?(["playbackRate": NSNumber(value: _player.rate),
                                "target": reactTag as Any])
+        
+        onVideoPlaybackStateChanged?(["isPlaying": _player.rate != 0,
+                               "target": reactTag as Any])
+        
         if _playbackStalled && _player.rate > 0 {
             onPlaybackResume?(["playbackRate": NSNumber(value: _player.rate),
                                "target": reactTag as Any])

@@ -39,7 +39,9 @@
     "scripts": {
         "lint": "yarn eslint .",
         "build": "yarn tsc",
+        "prepare": "yarn build",
         "xbasic": "yarn --cwd examples/basic",
+        "docs": "yarn --cwd docs build",
         "test": "echo no test available"
     },
     "files": [
@@ -47,8 +49,8 @@
         "ios",
         "windows",
         "src",
+        "lib",
         "react-native-video.podspec",
-        "docs",
         "!android/build",
         "!android/buildOutput_*",
         "!android/local.properties",
