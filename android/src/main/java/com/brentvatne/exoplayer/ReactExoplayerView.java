@@ -827,6 +827,7 @@ public class ReactExoplayerView extends FrameLayout implements
                 mediaSource = new HlsMediaSource.Factory(
                         mediaDataSourceFactory
                 ).setDrmSessionManagerProvider(drmProvider)
+                 .setAllowChunklessPreparation(false)
                  .setLoadErrorHandlingPolicy(
                         config.buildLoadErrorHandlingPolicy(minLoadRetryCount)
                 ).createMediaSource(mediaItem);
@@ -1168,7 +1169,7 @@ public class ReactExoplayerView extends FrameLayout implements
             long duration = player.getDuration();
             long currentPosition = player.getCurrentPosition();
             ArrayList<Track> audioTracks = getAudioTrackInfo();
-            ArrayList<Track> textTracks  = getTextTrackInfo();
+            ArrayList<TextTrack> textTracks = getTextTrackInfo();
 
             if (this.contentStartTime != -1L) {
                 ExecutorService es = Executors.newSingleThreadExecutor();
