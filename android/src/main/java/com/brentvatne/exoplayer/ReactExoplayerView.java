@@ -1169,7 +1169,7 @@ public class ReactExoplayerView extends FrameLayout implements
             long duration = player.getDuration();
             long currentPosition = player.getCurrentPosition();
             ArrayList<Track> audioTracks = getAudioTrackInfo();
-            ArrayList<TextTrack> textTracks = getTextTrackInfo();
+            ArrayList<Track> textTracks  = getTextTrackInfo();
 
             if (this.contentStartTime != -1L) {
                 ExecutorService es = Executors.newSingleThreadExecutor();
