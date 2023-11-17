@@ -150,9 +150,9 @@ export type OnProgressData = Readonly<{
 
 export type OnBandwidthUpdateData = Readonly<{
   bitrate: number;
-  width: number;
-  height: number;
-  trackId: number;
+  width?: number;
+  height?: number;
+  trackId?: number;
 }>;
 
 export type OnSeekData = Readonly<{
@@ -218,6 +218,10 @@ export type OnPlaybackData = Readonly<{
   playbackRate: number;
 }>;
 
+export type onVolumeChangeData = Readonly<{
+  volume: number;
+}>;
+
 export type OnExternalPlaybackChangeData = Readonly<{
   isExternalPlaybackActive: boolean;
 }>;
@@ -237,11 +241,21 @@ export type OnReceiveAdEventData = Readonly<{
 }>;
 
 export type OnVideoErrorData = Readonly<{
-  errorString: string;
-  errorException: string;
-  errorStackTrace: string;
-  errorCode: string;
-  error: string;
+  error: OnVideoErrorDataDetails;
+  target?: number; // ios
+}>;
+
+export type OnVideoErrorDataDetails = Readonly<{
+  errorString?: string; // android
+  errorException?: string; // android
+  errorStackTrace?: string; // android
+  errorCode?: string; // android
+  error?: string; // ios
+  code?: number; // ios
+  localizedDescription?: string; // ios
+  localizedFailureReason?: string; // ios
+  localizedRecoverySuggestion?: string; // ios
+  domain?: string; // ios
 }>;
 
 export type OnAudioFocusChangedData = Readonly<{
@@ -327,6 +341,7 @@ export interface VideoNativeProps extends ViewProps {
   ) => void; // ios, android
   onReadyForDisplay?: (event: NativeSyntheticEvent<Readonly<object>>) => void;
   onPlaybackRateChange?: (event: NativeSyntheticEvent<OnPlaybackData>) => void; // all
+  onVolumeChange?: (event: NativeSyntheticEvent<onVolumeChangeData>) => void; // android, ios
   onVideoExternalPlaybackChange?: (
     event: NativeSyntheticEvent<OnExternalPlaybackChangeData>,
   ) => void;
@@ -360,7 +375,7 @@ export type VideoSaveData = {
 };
 
 export interface VideoManagerType {
-  save: (reactTag: number) => Promise<VideoSaveData>;
+  save: (option: object, reactTag: number) => Promise<VideoSaveData>;
   setPlayerPauseState: (paused: boolean, reactTag: number) => Promise<void>;
   setLicenseResult: (
     result: string,

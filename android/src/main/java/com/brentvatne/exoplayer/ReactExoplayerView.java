@@ -648,6 +648,7 @@ public class ReactExoplayerView extends FrameLayout implements
                     .setMediaSourceFactory(mediaSourceFactory)
                     .build();
         player.addListener(self);
+        player.setVolume(muted ? 0.f : audioVolume * 1);
         exoPlayerView.setPlayer(player);
         if (adsLoader != null) {
             adsLoader.setPlayer(player);
@@ -1470,6 +1471,11 @@ public class ReactExoplayerView extends FrameLayout implements
     @Override
     public void onPlaybackParametersChanged(PlaybackParameters params) {
         eventEmitter.playbackRateChange(params.speed);
+    }
+
+    @Override
+    public void onVolumeChanged(float volume) {
+        eventEmitter.volumeChange(volume);
     }
 
     @Override

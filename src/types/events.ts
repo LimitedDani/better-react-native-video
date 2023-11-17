@@ -95,6 +95,10 @@ export type OnPlaybackData = Readonly<{
   playbackRate: number;
 }>;
 
+export type OnVolumeChangeData = Readonly<{
+  volume: number;
+}>;
+
 export type OnExternalPlaybackChangeData = Readonly<{
   isExternalPlaybackActive: boolean;
 }>;
@@ -114,25 +118,37 @@ export type OnReceiveAdEventData = Readonly<{
 }>;
 
 export type OnVideoErrorData = Readonly<{
-  errorString: string;
-  errorException: string;
-  errorStackTrace: string;
-  errorCode: string;
-  error: string;
+  error: OnVideoErrorDataDetails;
+  target?: number; // ios
 }>;
 
+export type OnVideoErrorDataDetails = Readonly<{
+  errorString?: string; // android
+  errorException?: string; // android
+  errorStackTrace?: string; // android
+  errorCode?: string; // android
+  error?: string; // ios
+  code?: number; // ios
+  localizedDescription?: string; // ios
+  localizedFailureReason?: string; // ios
+  localizedRecoverySuggestion?: string; // ios
+  domain?: string; // ios
+}>;
 export type OnAudioFocusChangedData = Readonly<{
   hasAudioFocus: boolean;
 }>;
 
 export type OnBufferData = Readonly<{isBuffering: boolean}>;
 
-export type OnBandwidthUpdateData = Readonly<{
-  bitrate: number;
-  width: number;
-  height: number;
-  trackId: number;
-}>;
+export type OnBandwidthUpdateData = Readonly<
+  | {
+      bitrate: number;
+      width: number;
+      height: number;
+      trackId: number;
+    }
+  | {bitrate: number}
+>;
 
 export interface ReactVideoEvents {
   onAudioBecomingNoisy?: () => void; //Android, iOS
@@ -153,6 +169,7 @@ export interface ReactVideoEvents {
     e: OnPictureInPictureStatusChangedData,
   ) => void; //iOS
   onPlaybackRateChange?: (e: OnPlaybackData) => void; //All
+  onVolumeChange?: (e: OnVolumeChangeData) => void; //Android, iOS
   onProgress?: (e: OnProgressData) => void; //All
   onReadyForDisplay?: () => void; //Android, iOS
   onReceiveAdEvent?: (e: OnReceiveAdEventData) => void; //Android, iOS

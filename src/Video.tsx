@@ -50,7 +50,7 @@ export interface VideoRef {
   restoreUserInterfaceForPictureInPictureStopCompleted: (
     restore: boolean,
   ) => void;
-  save: () => Promise<VideoSaveData>;
+  save: (options: object) => Promise<VideoSaveData>;
 }
 
 const Video = forwardRef<VideoRef, ReactVideoProps>(
@@ -82,6 +82,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       onFullscreenPlayerDidDismiss,
       onReadyForDisplay,
       onPlaybackRateChange,
+      onVolumeChange,
       onAudioBecomingNoisy,
       onPictureInPictureStatusChanged,
       onRestoreUserInterfaceForPictureInPictureStop,
@@ -241,8 +242,8 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       setIsFullscreen(false);
     }, [setIsFullscreen]);
 
-    const save = useCallback(() => {
-      return VideoManager.save(getReactTag(nativeRef));
+    const save = useCallback((options: object) => {
+      return VideoManager.save(options, getReactTag(nativeRef));
     }, []);
 
     const stopVideo = useCallback(async () => {
@@ -347,6 +348,13 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
         onPlaybackRateChange?.(e.nativeEvent);
       },
       [onPlaybackRateChange],
+    );
+
+    const _onVolumeChange = useCallback(
+      (e: NativeSyntheticEvent<Readonly<{volume: number}>>) => {
+        onVolumeChange?.(e.nativeEvent);
+      },
+      [onVolumeChange],
     );
 
     const _onReadyForDisplay = useCallback(() => {
@@ -516,6 +524,7 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
           onAudioFocusChanged={_onAudioFocusChanged}
           onReadyForDisplay={_onReadyForDisplay}
           onPlaybackRateChange={_onPlaybackRateChange}
+          onVolumeChange={_onVolumeChange}
           onVideoAudioBecomingNoisy={onAudioBecomingNoisy}
           onPictureInPictureStatusChanged={_onPictureInPictureStatusChanged}
           onRestoreUserInterfaceForPictureInPictureStop={
