@@ -1073,7 +1073,9 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         _playerObserver.clearPlayer()
         #if USE_GOOGLE_IMA
         _imaAdsManager.getAdsManager()?.destroy()
+        _imaAdsManager = nil
         #endif
+        _pip = nil
 
         self.removePlayerLayer()
 
