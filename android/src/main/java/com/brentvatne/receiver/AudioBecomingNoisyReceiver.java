@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.media.AudioManager;
 
+import androidx.core.content.ContextCompat;
+
 public class AudioBecomingNoisyReceiver extends BroadcastReceiver {
 
     private final Context context;
