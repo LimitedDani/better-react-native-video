@@ -421,7 +421,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             self._resouceLoaderDelegate = nil
             self._playerObserver.playerItem = nil
             self._player = nil
-        } else {
+        } else if(_source?.json != nil) {
             setSrc(_source?.json)
         }
     }
