@@ -98,10 +98,18 @@ class RCTIMAAdsManager: NSObject, IMAAdsLoaderDelegate, IMAAdsManagerDelegate, I
         if _video.onReceiveAdEvent != nil {
             let type = convertEventToString(event: event.type)
 
-            _video.onReceiveAdEvent?([
-                "event": type,
-                "target": _video.reactTag!
-            ]);
+            if (event.adData != nil) {
+                _video.onReceiveAdEvent?([
+                    "event": type,
+                    "data": event.adData ?? [String](),
+                    "target": _video.reactTag!
+                ]);
+            } else {
+                _video.onReceiveAdEvent?([
+                    "event": type,
+                    "target": _video.reactTag!
+                ]);
+            }
         }
     }
 
@@ -110,8 +118,22 @@ class RCTIMAAdsManager: NSObject, IMAAdsLoaderDelegate, IMAAdsManagerDelegate, I
             print("AdsManager error: " + error.message!)
         }
 
+        guard let _video = _video else {return}
+
+        if _video.onReceiveAdEvent != nil {
+            _video.onReceiveAdEvent?([
+                "event": "ERROR",
+                "data": [
+                    "message": error.message ?? "",
+                    "code": error.code,
+                    "type": error.type,
+                ],
+                "target": _video.reactTag!
+            ])
+        }
+
         // Fall back to playing content
-        _video?.setPaused(false)
+        _video.setPaused(false)
     }
 
     func adsManagerDidRequestContentPause(_ adsManager: IMAAdsManager) {

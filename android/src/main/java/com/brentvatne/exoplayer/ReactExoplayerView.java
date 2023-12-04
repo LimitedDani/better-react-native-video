@@ -25,6 +25,9 @@ import android.widget.ImageButton;
 import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.media3.common.AudioAttributes;
 import androidx.media3.common.C;
 import androidx.media3.common.Format;
@@ -105,8 +108,10 @@ import com.facebook.react.bridge.Dynamic;
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.google.ads.interactivemedia.v3.api.AdEvent;
+import com.google.ads.interactivemedia.v3.api.AdErrorEvent;
 import com.google.common.collect.ImmutableList;
 
 import java.net.CookieHandler;
@@ -131,7 +136,8 @@ public class ReactExoplayerView extends FrameLayout implements
         BandwidthMeter.EventListener,
         BecomingNoisyListener,
         DrmSessionEventListener,
-        AdEvent.AdEventListener {
+        AdEvent.AdEventListener,
+        AdErrorEvent.AdErrorListener {
 
     public static final double DEFAULT_MAX_HEAP_ALLOCATION_PERCENT = 1;
     public static final double DEFAULT_MIN_BACK_BUFFER_MEMORY_RESERVE = 0;
@@ -620,8 +626,10 @@ public class ReactExoplayerView extends FrameLayout implements
                         .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF);
 
         // Create an AdsLoader.
-        adsLoader = new ImaAdsLoader.Builder(themedReactContext)
+        adsLoader = new ImaAdsLoader
+                .Builder(themedReactContext)
                 .setAdEventListener(this)
+                .setAdErrorListener(this)
                 .build();
 
         DefaultMediaSourceFactory mediaSourceFactory = new DefaultMediaSourceFactory(mediaDataSourceFactory);
@@ -2018,34 +2026,27 @@ public class ReactExoplayerView extends FrameLayout implements
         }
 
         Window window = activity.getWindow();
-        View decorView = window.getDecorView();
-        int uiOptions;
+        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(window, window.getDecorView());
         if (isFullscreen) {
-            if (Util.SDK_INT >= 19) { // 4.4+
-                uiOptions = SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                        | SYSTEM_UI_FLAG_FULLSCREEN;
-            } else {
-                uiOptions = SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                        | SYSTEM_UI_FLAG_FULLSCREEN;
-            }
             eventEmitter.fullscreenWillPresent();
             if (controls && fullScreenPlayerView != null) {
                 fullScreenPlayerView.show();
             }
-            post(() -> {
-                decorView.setSystemUiVisibility(uiOptions);
+            UiThreadUtil.runOnUiThread(() -> {
+                WindowCompat.setDecorFitsSystemWindows(window, false);
+                controller.hide(WindowInsetsCompat.Type.systemBars());
+                controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
                 eventEmitter.fullscreenDidPresent();
             });
         } else {
-            uiOptions = View.SYSTEM_UI_FLAG_VISIBLE;
             eventEmitter.fullscreenWillDismiss();
             if (controls && fullScreenPlayerView != null) {
                 fullScreenPlayerView.dismiss();
                 reLayout(exoPlayerView);
             }
-            post(() -> {
-                decorView.setSystemUiVisibility(uiOptions);
+            UiThreadUtil.runOnUiThread(() -> {
+                WindowCompat.setDecorFitsSystemWindows(window, true);
+                controller.show(WindowInsetsCompat.Type.systemBars());
                 eventEmitter.fullscreenDidDismiss();
             });
         }
@@ -2149,6 +2150,15 @@ public class ReactExoplayerView extends FrameLayout implements
 
     @Override
     public void onAdEvent(AdEvent adEvent) {
-        eventEmitter.receiveAdEvent(adEvent.getType().name());
+        if (adEvent.getAdData() != null) {
+            eventEmitter.receiveAdEvent(adEvent.getType().name(), adEvent.getAdData());
+        } else {
+            eventEmitter.receiveAdEvent(adEvent.getType().name());
+        }
+    }
+
+    @Override
+    public void onAdError(AdErrorEvent adErrorEvent) {
+        eventEmitter.receiveAdErrorEvent(adErrorEvent.getError());
     }
 }

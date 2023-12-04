@@ -148,7 +148,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             name: UIApplication.willResignActiveNotification,
             object: nil
         )
-                
+
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(applicationDidBecomeActive(notification:)),
@@ -1396,11 +1396,11 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
             _playerObserver.removePlayerTimeObserver()
         }
     }
-    
+
     @objc func handleAVPlayerAccess(notification:NSNotification!) {
         let accessLog:AVPlayerItemAccessLog! = (notification.object as! AVPlayerItem).accessLog()
         let lastEvent:AVPlayerItemAccessLogEvent! = accessLog.events.last
-        
+
         onVideoBandwidthUpdate?(["bitrate": lastEvent.observedBitrate, "target": reactTag])
     }
 }
