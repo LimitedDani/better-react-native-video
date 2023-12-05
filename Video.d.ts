@@ -49,6 +49,7 @@ export interface OnProgressData {
     currentTime: number;
     playableDuration: number;
     seekableDuration: number;
+    currentPlaybackTime?: number;
 }
 
 export interface OnBandwidthUpdateData {
