@@ -311,6 +311,15 @@ export type VideoSrc = Readonly<{
     description?: string;
     customImageUri?: string;
   }>;  
+  export type BufferConfig = {
+    minBufferMs?: number;
+    maxBufferMs?: number;
+    bufferForPlaybackMs?: number;
+    bufferForPlaybackAfterRebufferMs?: number;
+    maxHeapAllocationPercent?: number;
+    minBackBufferMemoryReservePercent?: number;
+    minBufferMemoryReservePercent?: number;
+};
 
 export interface VideoProperties extends ViewProps {
     filter?: FilterType | undefined;
@@ -349,12 +358,7 @@ export interface VideoProperties extends ViewProps {
     paused?: boolean | undefined;
     muted?: boolean | undefined;
     volume?: number | undefined;
-    bufferConfig?: {
-        minBufferMs?: number | undefined;
-        maxBufferMs?: number | undefined;
-        bufferForPlaybackMs?: number | undefined;
-        bufferForPlaybackAfterRebufferMs?: number | undefined;
-    } | undefined;
+    bufferConfig?: BufferConfig;
     stereoPan?: number | undefined;
     rate?: number | undefined;
     pictureInPicture?: boolean | undefined;
