@@ -292,6 +292,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         for metaDataGroup in metadataGroups {
             for metadataitem in metaDataGroup.items {
                 onTimedMetadata?([
+                    "startDate": metaDataGroup.startDate.timeIntervalSince1970,
                     "metadata": [
                         "key": metadataitem.key,
                         "value": metadataitem.value,
