@@ -35,4 +35,17 @@ public class VideoManagerModule extends ReactContextBaseJavaModule {
             }
         });
     }
+
+    @ReactMethod
+    public void stop(int reactTag) {
+        UIManagerModule uiManager = getReactApplicationContext().getNativeModule(UIManagerModule.class);
+        uiManager.prependUIBlock(manager -> {
+            View view = manager.resolveView(reactTag);
+
+            if (view instanceof ReactExoplayerView) {
+                ReactExoplayerView videoView = (ReactExoplayerView) view;
+                videoView.stopPlayback();
+            }
+        });
+    }
 }

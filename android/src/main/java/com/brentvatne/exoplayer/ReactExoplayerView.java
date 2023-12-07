@@ -1024,7 +1024,7 @@ public class ReactExoplayerView extends FrameLayout implements
         setKeepScreenOn(false);
     }
 
-    private void stopPlayback() {
+    public void stopPlayback() {
         onStopPlayback();
         releasePlayer();
     }
@@ -1481,6 +1481,7 @@ public class ReactExoplayerView extends FrameLayout implements
     public void onPlayerError(@NonNull PlaybackException e) {
         String errorString = "ExoPlaybackException: " + PlaybackException.getErrorCodeName(e.errorCode);
         String errorCode = "2" + String.valueOf(e.errorCode);
+        System.out.println("IMA ERROR Error code: " + e.errorCode + " " + errorString);
         switch(e.errorCode) {
             case PlaybackException.ERROR_CODE_DRM_DEVICE_REVOKED:
             case PlaybackException.ERROR_CODE_DRM_LICENSE_ACQUISITION_FAILED:

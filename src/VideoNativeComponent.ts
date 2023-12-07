@@ -389,7 +389,7 @@ export interface VideoManagerType {
     licenseUrl: string,
     reactTag: number,
   ) => Promise<void>;
-  stop: () => Promise<void>;
+  stop: (reactTag: number) => Promise<void>;
 }
 
 export interface VideoDecoderPropertiesType {

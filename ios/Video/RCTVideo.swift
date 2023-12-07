@@ -417,7 +417,7 @@ class RCTVideo: UIView, RCTVideoPlayerViewControllerDelegate, RCTPlayerObserverH
         _stopped = stop
         if (stop) {
             self._player?.pause()
-            self.removePlayerLayer()
+            self._player?.replaceCurrentItem(with: nil)
             self._playerObserver.player = nil
             self._resouceLoaderDelegate = nil
             self._playerObserver.playerItem = nil

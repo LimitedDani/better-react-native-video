@@ -247,9 +247,9 @@ const Video = forwardRef<VideoRef, ReactVideoProps>(
       return VideoManager.save(options, getReactTag(nativeRef));
     }, []);
 
-    const stopVideo = useCallback(async () => {
-      await VideoManager.stop();
-    }, []);
+    const stopVideo = useCallback(() => {
+      return VideoManager.stop(getReactTag(nativeRef));
+  }, []);
 
     const pause = useCallback(() => {
       return VideoManager.setPlayerPauseState(true, getReactTag(nativeRef));
