@@ -1,7 +1,7 @@
-#import <React/RCTBridge.h>
 #import "React/RCTViewManager.h"
+#import <React/RCTBridge.h>
 
-@interface RCT_EXTERN_MODULE(RCTVideoManager, RCTViewManager)
+@interface RCT_EXTERN_MODULE (RCTVideoManager, RCTViewManager)
 
 RCT_EXPORT_VIEW_PROPERTY(src, NSDictionary);
 RCT_EXPORT_VIEW_PROPERTY(drm, NSDictionary);
@@ -67,29 +67,24 @@ RCT_EXPORT_VIEW_PROPERTY(onRestoreUserInterfaceForPictureInPictureStop, RCTDirec
 RCT_EXPORT_VIEW_PROPERTY(onReceiveAdEvent, RCTDirectEventBlock);
 RCT_EXPORT_VIEW_PROPERTY(onTextTracks, RCTDirectEventBlock);
 
-RCT_EXTERN_METHOD(save:(NSDictionary *)options
-        reactTag:(nonnull NSNumber *)reactTag
-        resolver:(RCTPromiseResolveBlock)resolve
-        rejecter:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(save
+                  : (NSDictionary*)options reactTag
+                  : (nonnull NSNumber*)reactTag resolver
+                  : (RCTPromiseResolveBlock)resolve rejecter
+                  : (RCTPromiseRejectBlock)reject)
 
-RCT_EXTERN_METHOD(setLicenseResult:(NSString *)license
-         licenseUrl:(NSString *)licenseUrl
-         reactTag:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(setLicenseResult : (NSString*)license licenseUrl : (NSString*)licenseUrl reactTag : (nonnull NSNumber*)reactTag)
 
-RCT_EXTERN_METHOD(setLicenseResultError:(NSString *)error
-         licenseUrl:(NSString *)licenseUrl
-         reactTag:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(setLicenseResultError : (NSString*)error licenseUrl : (NSString*)licenseUrl reactTag : (nonnull NSNumber*)reactTag)
 
-RCT_EXTERN_METHOD(setPlayerPauseState:(nonnull NSNumber *)paused
-                 reactTag:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(setPlayerPauseState : (nonnull NSNumber*)paused reactTag : (nonnull NSNumber*)reactTag)
 
 RCT_EXTERN_METHOD(stop:(nonnull NSNumber *)reactTag)
 
-RCT_EXTERN_METHOD(presentFullscreenPlayer:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(presentFullscreenPlayer : (nonnull NSNumber*)reactTag)
 
-RCT_EXTERN_METHOD(dismissFullscreenPlayer:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(dismissFullscreenPlayer : (nonnull NSNumber*)reactTag)
 
-RCT_EXTERN_METHOD(dismissFullscreenPlayer
-                 reactTag:(nonnull NSNumber *)reactTag)
+RCT_EXTERN_METHOD(dismissFullscreenPlayer reactTag : (nonnull NSNumber*)reactTag)
 
 @end
