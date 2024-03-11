@@ -7,7 +7,7 @@
 // TypeScript Version: 2.8
 
 import * as React from 'react';
-import { ViewProps } from 'react-native';
+import { ViewProps, NativeSyntheticEvent } from 'react-native';
 
 export interface OnLoadData {
     canPlayFastForward: boolean;
@@ -322,6 +322,24 @@ export type VideoSrc = Readonly<{
     minBufferMemoryReservePercent?: number;
 };
 
+export type OnVideoErrorData = Readonly<{
+  error: OnVideoErrorDataDetails;
+  target?: number; // ios
+}>;
+
+export type OnVideoErrorDataDetails = Readonly<{
+  errorString?: string; // android
+  errorException?: string; // android
+  errorStackTrace?: string; // android
+  errorCode?: string; // android
+  error?: string; // ios
+  code?: number; // ios
+  localizedDescription?: string; // ios
+  localizedFailureReason?: string; // ios
+  localizedRecoverySuggestion?: string; // ios
+  domain?: string; // ios
+}>;
+
 export interface VideoProperties extends ViewProps {
     filter?: FilterType | undefined;
     filterEnabled?: boolean | undefined;
@@ -336,7 +354,7 @@ export interface VideoProperties extends ViewProps {
     onVideoLoadStart?(): void;
     onVideoLoad?(): void;
     onVideoBuffer?(): void;
-    onVideoError?(): void;
+    onVideoError?: (event: NativeSyntheticEvent<OnVideoErrorData>) => void;
     onVideoProgress?(): void;
     onVideoSeek?(): void;
     onVideoEnd?(): void;
